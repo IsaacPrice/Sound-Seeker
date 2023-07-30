@@ -9,7 +9,7 @@ client_secret = 'f84b389526234469a208f2a0e40f5063'
 
 client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
+'''
 # Alphabet for search queries
 alphabet = list(string.ascii_lowercase)
 
@@ -52,7 +52,12 @@ def remove_duplicates(tracks):
 
 # Remove duplicates
 all_tracks = remove_duplicates(all_tracks)
-pk.dump(all_tracks)
+with open('model_pickle', 'wb') as f:
+    pk.dump(all_tracks, f)
+'''
+
+with open('model_pickle','rb') as f:
+    all_tracks = pk.load(f)
 
 # Print unique tracks
 for idx, track in enumerate(all_tracks):
