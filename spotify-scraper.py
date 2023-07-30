@@ -1,15 +1,59 @@
 import spotipy
+import string
+import time
+import pickle as pk
 from spotipy.oauth2 import SpotifyClientCredentials
 
-# Set up the session
-client_credentials_manager = SpotifyClientCredentials(client_id='ad6f915a353c47c7960ef96531a990f8', client_secret='f84b389526234469a208f2a0e40f5063')
+client_id = 'ad6f915a353c47c7960ef96531a990f8'
+client_secret = 'f84b389526234469a208f2a0e40f5063'
+
+client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-# ID of the song for which you want to get the audio features
-track_id = '7rbECVPkY5UODxoOUVKZnA'  # Replace with your track's ID
+# Alphabet for search queries
+alphabet = list(string.ascii_lowercase)
 
-# Get the audio features of the song
-features = sp.audio_features(track_id)
+# List to store all tracks
+all_tracks = []
 
-# Print the features
-print(features)
+for letter in alphabet:
+    # Iterate over alphabet for broad search queries
+    results = sp.search(q=letter, type='track', limit=50)
+    
+    tracks = results['tracks']['items']
+    for track in tracks:
+        all_tracks.append(track)
+
+    # Fetch additional pages of results
+    while results['tracks']['next']:
+        results = sp.next(results['tracks'])
+        tracks = results['tracks']['items']
+        
+        for track in tracks:
+            all_tracks.append(track)
+
+        # Check if we've fetched enough songs for this letter
+        if len(all_tracks) >= 10000000:
+            break
+
+        # Be nice to the Spotify API and don't hit the rate limit
+        time.sleep(0.1)
+
+def remove_duplicates(tracks):
+    seen = set()
+    unique_tracks = []
+
+    for track in tracks:
+        if track['id'] not in seen:
+            unique_tracks.append(track)
+            seen.add(track['id'])
+
+    return unique_tracks
+
+# Remove duplicates
+all_tracks = remove_duplicates(all_tracks)
+pk.dump(all_tracks)
+
+# Print unique tracks
+for idx, track in enumerate(all_tracks):
+    print(f"Track #{idx + 1}: {track['name']} by {track['artists'][0]['name']}")
