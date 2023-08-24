@@ -2,6 +2,7 @@ import spotipy
 import string
 import time
 import pickle as pk
+import pandas as pd
 from spotipy.oauth2 import SpotifyClientCredentials
 
 client_id = 'ad6f915a353c47c7960ef96531a990f8'
@@ -56,9 +57,48 @@ with open('model_pickle', 'wb') as f:
     pk.dump(all_tracks, f)
 '''
 
-with open('model_pickle','rb') as f:
+with open('music','rb') as f:
     all_tracks = pk.load(f)
 
-# Print unique tracks
+'''# Print unique tracks
 for idx, track in enumerate(all_tracks):
     print(f"Track #{idx + 1}: {track['name']} by {track['artists'][0]['name']}")
+'''
+
+length = len(all_tracks)
+
+# Iterate through all of the songs and get the features of each song and combine them with the name and song artists into a pandas dataframe
+# Create the empty dataframe
+df = pd.DataFrame(columns=['name', 'artists', 'id', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo', 'valence'])
+
+# Iterate through all of the songs and get the features of each song and combine them with the name and song artists into a pandas dataframe
+for idx, track in enumerate(all_tracks):
+    # Get the features of the song
+    features = sp.audio_features(track['id'])[0]
+
+    # Append the features to the dataframe
+    df.loc[len(df.index)] = [
+        track['name'],
+        track['artists'][0]['name'],
+        track['id'],
+        features['acousticness'],
+        features['danceability'],
+        features['energy'],
+        features['instrumentalness'],
+        features['key'],
+        features['liveness'],
+        features['loudness'],
+        features['mode'],
+        features['speechiness'],
+        features['tempo'],
+        features['valence']
+    ]
+
+    # Be nice to the Spotify API and don't hit the rate limit
+    time.sleep(0.1)
+
+    # Show how many songs we've processed as a bar graph that moves
+    print(f"Processed {idx + 1} songs: [{'=' * ((idx + 1) // int(length / 100))}{' ' * ((int(length / 100) - ((idx + 1) // (int(length / 100)))))}] {idx + 1}/10834", end='\r')
+
+# Save the dataframe to a pickle file
+df.to_pickle('music_w/Features.pkl')
