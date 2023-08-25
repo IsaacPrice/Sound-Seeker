@@ -73,6 +73,8 @@ df = pd.DataFrame(columns=['name', 'artists', 'id', 'acousticness', 'danceabilit
 
 # Iterate through all of the songs and get the features of each song and combine them with the name and song artists into a pandas dataframe
 for idx, track in enumerate(all_tracks):
+    if idx // 1000 == 0:
+        time.sleep(60)
     try:
         # Get the features of the song
         features = sp.audio_features(track['id'])[0]
