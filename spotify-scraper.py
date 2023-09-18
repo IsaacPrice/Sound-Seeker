@@ -73,26 +73,37 @@ df = pd.DataFrame(columns=['name', 'artists', 'id', 'acousticness', 'danceabilit
 
 # Iterate through all of the songs and get the features of each song and combine them with the name and song artists into a pandas dataframe
 for idx, track in enumerate(all_tracks):
-    # Get the features of the song
-    features = sp.audio_features(track['id'])[0]
+    if idx // 1000 == 0:
+        time.sleep(60)
+    try:
+        # Get the features of the song
+        features = sp.audio_features(track['id'])[0]
 
-    # Append the features to the dataframe
-    df.loc[len(df.index)] = [
-        track['name'],
-        track['artists'][0]['name'],
-        track['id'],
-        features['acousticness'],
-        features['danceability'],
-        features['energy'],
-        features['instrumentalness'],
-        features['key'],
-        features['liveness'],
-        features['loudness'],
-        features['mode'],
-        features['speechiness'],
-        features['tempo'],
-        features['valence']
-    ]
+        # If the features are not found, continue to the next iteration
+        if features is None:
+            print(f"Skipping {track['name']} due to missing features")
+            continue
+
+        # Append the features to the dataframe
+        df.loc[len(df.index)] = [
+            track['name'],
+            track['artists'][0]['name'],
+            track['id'],
+            features['acousticness'],
+            features['danceability'],
+            features['energy'],
+            features['instrumentalness'],
+            features['key'],
+            features['liveness'],
+            features['loudness'],
+            features['mode'],
+            features['speechiness'],
+            features['tempo'],
+            features['valence']
+        ]
+    except TypeError:
+        print(f"An error occurred with {track['name']}, skipping")
+        continue
 
     # Be nice to the Spotify API and don't hit the rate limit
     time.sleep(0.1)
